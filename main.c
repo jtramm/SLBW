@@ -66,6 +66,20 @@ int main(void)
 		sigma_t[i] += sigma_f[i] + sigma_n[i];
 
 	}
-	return 0;
 
+
+	// Save Data to File
+	FILE * fp = fopen("data.dat", "w");
+	for( int i = 0; i < n_gridpoints; i++ )
+	{
+		fprintf(fp, "%lf\t%lf\t%lf\t%lf\n",
+				E[i],
+				sigma_f[i],
+				sigma_n[i],
+				sigma_t[i]);
+	}
+	fclose(fp);
+
+	free(E);
+	return 0;
 }
