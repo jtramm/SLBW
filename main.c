@@ -30,7 +30,7 @@ int main(void)
 	R[2].Tn = 3.354568e-2;
 	R[2].Tg = 2.300225e-2;
 
-	// Other U-238 Specific Parameters
+	// sigma_pot = 4 * pi * a^2 (where a is scattering radius)
 	float sigma_pot = 11.29; // barns
 
 	float * E = (float *) calloc( 4 * n_gridpoints, sizeof(float));
