@@ -1,5 +1,13 @@
 COMPILER    = gnu
 
+program = SLBW
+
+source = \
+main.c \
+Faddeeva.c
+
+obj = $(source:.c=.o)
+
 # Standard Flags
 CFLAGS := -std=gnu99
 
@@ -20,11 +28,14 @@ ifeq ($(COMPILER),intel)
   CFLAGS += -O3 -xhost -ansi-alias -no-prec-div -DINTEL -vec-report6
 endif
 
-all:
-	$(CC) $(CFLAGS) main.c Faddeeva.c -o SLBW $(LDFLAGS)
+$(program): $(obj)
+	$(CC) $(CFLAGS) $(obj) -o $@ $(LDFLAGS)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f SLBW data.dat
+	rm -f SLBW data.dat main.o Faddeeva.o
 run:
 	./SLBW
 graph:
