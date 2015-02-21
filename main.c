@@ -2,6 +2,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<math.h>
+#include<complex.h>
 
 typedef struct{
 	double Eo;
@@ -11,7 +12,7 @@ typedef struct{
 
 int main(void)
 {
-	int TD = 1;
+	int temperature_dependent = 1;
 
 	int n_gridpoints = 1000;
 
@@ -58,12 +59,12 @@ int main(void)
 		{
 			double T = R[j].Tn + R[j].Tg;
 			double x = 2.f * (E[i] - R[j].Eo) / T;
-			if( TD )
+			if( temperature_dependent )
 			{
 				double k = 8.6173324e-5;
 				double temp = 1000;
 				double xi = T * sqrt(238.f / (4.f * k * temp * R[j].Eo));
-				double psi = sqrt(M_PI) * 
+				double psi = sqrt(M_PI) * creal( xi * W( (x + i) * xi ) ); 
 			}
 			else
 			{
