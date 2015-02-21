@@ -4,13 +4,15 @@
 #include<math.h>
 
 typedef struct{
-	float Eo;
-	float Tn;
-	float Tg;
+	double Eo;
+	double Tn;
+	double Tg;
 } Resonance;
 
 int main(void)
 {
+	int TD = 1;
+
 	int n_gridpoints = 1000;
 
 	Resonance R[3];
@@ -31,35 +33,45 @@ int main(void)
 	R[2].Tg = 2.300225e-2;
 
 	// 4 pi a^2
-	float sigma_pot = 11.29; // barns
+	double sigma_pot = 11.29; // barns
 
-	float * E = (float *) calloc( 4 * n_gridpoints, sizeof(float));
-	float * sigma_f = E + n_gridpoints; 
-	float * sigma_n = E + 2 * n_gridpoints;
-	float * sigma_t = E + 3 * n_gridpoints;
+	double * E = (double *) calloc( 4 * n_gridpoints, sizeof(double));
+	double * sigma_f = E + n_gridpoints; 
+	double * sigma_n = E + 2 * n_gridpoints;
+	double * sigma_t = E + 3 * n_gridpoints;
 
 	// Initialize E to log scale (10^-2 <-> 10^2)
 	for( int i = 0; i < n_gridpoints; i++ )
 	{
-		float delta = 4.f / n_gridpoints;
-		E[i] = powf(10.f,-2.f + delta*i);
+		double delta = 4.f / n_gridpoints;
+		E[i] = pow(10.f,-2.f + delta*i);
 	}
 
 	// Calculate sigmas
 	for( int i = 0; i < n_gridpoints; i++ )
 	{
-		float r = 2603911 / E[i] * 239 / 238;
-		float q = 2.f * sqrtf(r * sigma_pot);
+		double r = 2603911 / E[i] * 239 / 238;
+		double q = 2.f * sqrt(r * sigma_pot);
 
 		// Accumulate Contributions from Each Resonance
 		for( int j = 0; j < 3; j++ )
 		{
-			float T = R[j].Tn + R[j].Tg;
-			float x = 2.f * (E[i] - R[j].Eo) / T;
-			float psi = 1 / (1 + x*x);
-			float chi = x / (1 + x*x);
-			sigma_f[i] += R[j].Tn * R[j].Tg / (T*T) * sqrtf(R[j].Eo / E[i]) * r * psi;
-			sigma_n[i] += R[j].Tn * R[j].Tg / (T*T) * ( r * psi + q * chi ) + sigma_pot; 
+			double T = R[j].Tn + R[j].Tg;
+			double x = 2.f * (E[i] - R[j].Eo) / T;
+			if( TD )
+			{
+				double k = 8.6173324e-5;
+				double temp = 1000;
+				double xi = T * sqrt(238.f / (4.f * k * temp * R[j].Eo));
+				double psi = sqrt(M_PI) * 
+			}
+			else
+			{
+				double psi = 1 / (1 + x*x);
+				double chi = x / (1 + x*x);
+				sigma_f[i] += R[j].Tn * R[j].Tg / (T*T) * sqrt(R[j].Eo / E[i]) * r * psi;
+				sigma_n[i] += R[j].Tn * R[j].Tg / (T*T) * ( r * psi + q * chi ) + sigma_pot; 
+			}
 		}
 
 		// Calculate Total XS
