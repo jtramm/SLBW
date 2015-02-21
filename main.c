@@ -13,7 +13,7 @@ typedef struct{
 
 int main(void)
 {
-	int temperature_dependent = 0;
+	int temperature_dependent = 1;
 
 	int n_gridpoints = 1000;
 
