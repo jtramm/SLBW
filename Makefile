@@ -21,7 +21,7 @@ ifeq ($(COMPILER),intel)
 endif
 
 all:
-	$(CC) $(CFLAGS) main.c -o SLBW $(LDFLAGS)
+	$(CC) $(CFLAGS) main.c Faddeeva.c -o SLBW $(LDFLAGS)
 
 clean:
 	rm -f SLBW data.dat

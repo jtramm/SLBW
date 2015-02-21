@@ -65,7 +65,7 @@ int main(void)
 				double k = 8.6173324e-5;
 				double temp = 1000;
 				double xi = T * sqrt(238.f / (4.f * k * temp * R[j].Eo));
-				double psi = sqrt(M_PI) * creal( xi * Faddeeva_w( (x + I) * xi ), 0.f ); 
+				double psi = sqrt(M_PI) * creal( xi * Faddeeva_w( (x + I) * xi, 0.f) ); 
 			}
 			else
 			{
