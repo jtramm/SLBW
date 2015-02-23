@@ -11,6 +11,54 @@ typedef struct{
 	double Tg;
 } Resonance;
 
+double complex Abrarov( double complex Z )
+{
+	if( cimag(Z) <= 0)
+	{
+		printf("Error: Imag value < 0\n");
+		exit(1);
+	}
+	double Tm = 12.0;
+	int N = 23;
+	double sigma = 2.0;
+	double s2 = sigma*sigma;
+	double p2 = M_PI*M_PI;
+	double complex w = exp(s2) / (Tm * ( sigma - I*Z ));
+
+	for( int n = 1; n <= N; n++ )
+	{
+		double An = 2.0 * Tm * exp( s2 - n*n*p2 / (Tm*Tm) ) * cos(2.0 * n * M_PI * sigma / Tm);
+		double Bn = 2.0 * Tm * exp( s2 - n*n*p2 / (Tm*Tm) ) * sin(2.0 * n * M_PI * sigma / Tm);
+		
+		double complex top = An * (sigma - I*Z) + Bn;
+		double complex bot = n*n * p2 + Tm*Tm*(sigma - I*Z)*(sigma - I*Z);
+
+		w += top / bot;
+	}
+
+	return w;
+
+}
+
+double complex tramm_faddeeva( double complex Z )
+{
+	printf("%f + i%f\n", creal(Z), cimag(Z));
+	double Tm = 12.0;
+	int N = 23;
+	double complex W = 0;
+	double ao = 2.0 * sqrt(M_PI) / Tm;
+	for( int n = 0; n <= N; n++ )
+	{
+		double an = 2.0 * sqrt(M_PI) / Tm * exp( - n*n * M_PI * M_PI / (Tm * Tm));
+		double complex term1 = ( 1.0 - exp(I *(n * M_PI + Tm * Z ))) / (n * M_PI + Tm * Z );
+		double complex term2 = ( 1.0 - exp(I *(-n * M_PI + Tm * Z ))) / (n * M_PI - Tm * Z );
+		double complex term3 = ao * (1.0 - exp(I * Tm * Z ) ) / Z; 
+		W += an * Tm * (term1 - term2 ) - term3;
+	}
+	W *= I / (2.0 * sqrt(M_PI));
+	return W;
+}
+
 int main(void)
 {
 	int temperature_dependent = 1;
@@ -67,7 +115,8 @@ int main(void)
 			if( temperature_dependent )
 			{
 				double xi = T * sqrt(238.0 / (4.0 * k * temp * R[j].Eo));
-				double complex faddeeva_output = xi * Faddeeva_w( (x + I) * xi, 0.0);
+				//double complex faddeeva_output = xi * Faddeeva_w( (x + I) * xi, 0.0);
+				double complex faddeeva_output = xi * Abrarov( (x + I) * xi);
 				psi = sqrt(M_PI) * creal(faddeeva_output); 
 				chi = sqrt(M_PI) * cimag(faddeeva_output);
 			}
