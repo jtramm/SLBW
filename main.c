@@ -23,7 +23,7 @@ double complex Abrarov( double complex Z )
 	double sigma = 2.0;
 	double s2 = sigma*sigma;
 	double p2 = M_PI*M_PI;
-	double complex w = exp(s2) / (Tm * ( sigma - I*Z ));
+	double complex w = cexp(s2) / (Tm * ( sigma - I*Z ));
 
 	for( int n = 1; n <= N; n++ )
 	{
@@ -40,9 +40,25 @@ double complex Abrarov( double complex Z )
 
 }
 
+double complex tramm_faddeeva2( double complex Z )
+{
+	double Tm = 12.0;
+	int N = 23;
+	double complex W = I * ( 1 - cexp(I*Tm*Z) ) / (Tm * Z );
+	double complex sum = 0;
+	for( int n = 1; n <= N; n++ )
+	{
+		double an = 2.0 * sqrt(M_PI) / Tm * exp( - n*n * M_PI * M_PI / (Tm * Tm));
+		complex double top = pow(-1,n) * cexp(I*Tm*Z) - 1.0;
+		complex double bot = n*n * M_PI*M_PI - Tm*Tm*Z*Z;
+		sum += an * (top/bot);
+	}
+	W += I * Tm*Tm * Z / sqrt(M_PI) * sum;
+	return W;
+}
+
 double complex tramm_faddeeva( double complex Z )
 {
-	printf("%f + i%f\n", creal(Z), cimag(Z));
 	double Tm = 12.0;
 	int N = 23;
 	double complex W = 0;
@@ -50,12 +66,12 @@ double complex tramm_faddeeva( double complex Z )
 	for( int n = 0; n <= N; n++ )
 	{
 		double an = 2.0 * sqrt(M_PI) / Tm * exp( - n*n * M_PI * M_PI / (Tm * Tm));
-		double complex term1 = ( 1.0 - exp(I *(n * M_PI + Tm * Z ))) / (n * M_PI + Tm * Z );
-		double complex term2 = ( 1.0 - exp(I *(-n * M_PI + Tm * Z ))) / (n * M_PI - Tm * Z );
-		double complex term3 = ao * (1.0 - exp(I * Tm * Z ) ) / Z; 
+		double complex term1 = ( 1.0 - cexp(I *(n * M_PI + Tm * Z ))) / (n * M_PI + Tm * Z );
+		double complex term2 = ( 1.0 - cexp(I *(-n * M_PI + Tm * Z ))) / (n * M_PI - Tm * Z );
+		double complex term3 = ao * (1.0 - cexp(I * Tm * Z ) ) / Z; 
 		W += an * Tm * (term1 - term2 ) - term3;
 	}
-	W *= I / (2.0 * sqrt(M_PI));
+	W *= I / (2.0 * csqrt(M_PI));
 	return W;
 }
 
@@ -116,7 +132,9 @@ int main(void)
 			{
 				double xi = T * sqrt(238.0 / (4.0 * k * temp * R[j].Eo));
 				//double complex faddeeva_output = xi * Faddeeva_w( (x + I) * xi, 0.0);
-				double complex faddeeva_output = xi * Abrarov( (x + I) * xi);
+				//double complex faddeeva_output = xi * Abrarov( (x + I) * xi);
+				//double complex faddeeva_output = xi * tramm_faddeeva( (x + I) * xi);
+				double complex faddeeva_output = xi * tramm_faddeeva2( (x + I) * xi);
 				psi = sqrt(M_PI) * creal(faddeeva_output); 
 				chi = sqrt(M_PI) * cimag(faddeeva_output);
 			}
