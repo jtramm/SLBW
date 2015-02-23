@@ -5,47 +5,75 @@
 #include<complex.h>
 #include "Faddeeva.h"
 
+#define N 10
+#define Tm 12.0
+#define Tm2 144.0
+
 typedef struct{
 	double Eo;
 	double Tn;
 	double Tg;
 } Resonance;
 
-double complex Abrarov( double complex Z )
+// This one works!
+double complex Abrarov_W( double complex Z )
 {
-	if( cimag(Z) <= 0)
-	{
-		printf("Error: Imag value < 0\n");
-		exit(1);
-	}
-	double Tm = 12.0;
-	int N = 23;
-	double sigma = 2.0;
-	double s2 = sigma*sigma;
-	double p2 = M_PI*M_PI;
-	double complex w = cexp(s2) / (Tm * ( sigma - I*Z ));
+	// Precomputed parts for speeding things up
+	// (N = 10, Tm = 12.0)
+	double complex prefactor = 8.124330e+01 * I;
+	double an[N] = {
+		2.758402e-01,
+		2.245740e-01,
+		1.594149e-01,
+		9.866577e-02,
+		5.324414e-02,
+		2.505215e-02,
+		1.027747e-02,
+		3.676164e-03,
+		1.146494e-03,
+		3.117570e-04
+	};
+	double neg_1n[N] = {
+		-1.0,
+		1.0,
+		-1.0,
+		1.0,
+		-1.0,
+		1.0,
+		-1.0,
+		1.0,
+		-1.0,
+		1.0
+	};
 
+	double denominator_left[N] = {
+		9.869604e+00,
+		3.947842e+01,
+		8.882644e+01,
+		1.579137e+02,
+		2.467401e+02,
+		3.553058e+02,
+		4.836106e+02,
+		6.316547e+02,
+		7.994380e+02,
+		9.869604e+02
+	};
+
+	double complex W = I * ( 1 - cexp(I*Tm*Z) ) / (Tm * Z );
+	double complex sum = 0;
 	for( int n = 1; n <= N; n++ )
 	{
-		double An = 2.0 * Tm * exp( s2 - n*n*p2 / (Tm*Tm) ) * cos(2.0 * n * M_PI * sigma / Tm);
-		double Bn = 2.0 * Tm * exp( s2 - n*n*p2 / (Tm*Tm) ) * sin(2.0 * n * M_PI * sigma / Tm);
-		
-		double complex top = An * (sigma - I*Z) + Bn;
-		double complex bot = n*n * p2 + Tm*Tm*(sigma - I*Z)*(sigma - I*Z);
-
-		w += top / bot;
+		int idx = n-1;
+		complex double top = neg_1n[idx] * cexp(I*Tm*Z) - 1.0;
+		complex double bot = denominator_left[idx] - Tm2*Z*Z;
+		sum += an[idx] * (top/bot);
 	}
-
-	return w;
-
+	W += prefactor * Z  * sum;
+	return W;
 }
 
-// This one works!
-double complex tramm_faddeeva2( double complex Z )
+double complex slow_Abrarov_W( double complex Z )
 {
-	double Tm = 12.0;
-	//int N = 10; // This is all I think we need for the graphs to look identical
-	int N = 23; // This is what's required for machine precision
 	double complex W = I * ( 1 - cexp(I*Tm*Z) ) / (Tm * Z );
 	double complex sum = 0;
 	for( int n = 1; n <= N; n++ )
@@ -56,24 +84,6 @@ double complex tramm_faddeeva2( double complex Z )
 		sum += an * (top/bot);
 	}
 	W += I * Tm*Tm * Z / sqrt(M_PI) * sum;
-	return W;
-}
-
-double complex tramm_faddeeva( double complex Z )
-{
-	double Tm = 12.0;
-	int N = 23;
-	double complex W = 0;
-	double ao = 2.0 * sqrt(M_PI) / Tm;
-	for( int n = 0; n <= N; n++ )
-	{
-		double an = 2.0 * sqrt(M_PI) / Tm * exp( - n*n * M_PI * M_PI / (Tm * Tm));
-		double complex term1 = ( 1.0 - cexp(I *(n * M_PI + Tm * Z ))) / (n * M_PI + Tm * Z );
-		double complex term2 = ( 1.0 - cexp(I *(-n * M_PI + Tm * Z ))) / (n * M_PI - Tm * Z );
-		double complex term3 = ao * (1.0 - cexp(I * Tm * Z ) ) / Z; 
-		W += an * Tm * (term1 - term2 ) - term3;
-	}
-	W *= I / (2.0 * csqrt(M_PI));
 	return W;
 }
 
@@ -94,7 +104,7 @@ int main(void)
 	R[1].Eo = 2.087152e+1;
 	R[1].Tn = 1.009376e-2;
 	R[1].Tg = 2.286379e-2;
-	
+
 	// Third Resonance
 	R[2].Eo = 3.668212e+1;
 	R[2].Tn = 3.354568e-2;
@@ -133,10 +143,7 @@ int main(void)
 			if( temperature_dependent )
 			{
 				double xi = T * sqrt(238.0 / (4.0 * k * temp * R[j].Eo));
-				//double complex faddeeva_output = xi * Faddeeva_w( (x + I) * xi, 0.0);
-				//double complex faddeeva_output = xi * Abrarov( (x + I) * xi);
-				//double complex faddeeva_output = xi * tramm_faddeeva( (x + I) * xi);
-				double complex faddeeva_output = xi * tramm_faddeeva2( (x + I) * xi);
+				double complex faddeeva_output = xi * Abrarov_W( (x + I) * xi);
 				psi = sqrt(M_PI) * creal(faddeeva_output); 
 				chi = sqrt(M_PI) * cimag(faddeeva_output);
 			}
