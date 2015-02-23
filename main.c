@@ -40,10 +40,12 @@ double complex Abrarov( double complex Z )
 
 }
 
+// This one works!
 double complex tramm_faddeeva2( double complex Z )
 {
 	double Tm = 12.0;
-	int N = 23;
+	//int N = 10; // This is all I think we need for the graphs to look identical
+	int N = 23; // This is what's required for machine precision
 	double complex W = I * ( 1 - cexp(I*Tm*Z) ) / (Tm * Z );
 	double complex sum = 0;
 	for( int n = 1; n <= N; n++ )
