@@ -15,6 +15,39 @@ typedef struct{
 	double Tg;
 } Resonance;
 
+Resonance * res_read(int * n_resonances)
+{
+	FILE * fp = fopen("resonances.dat", "r");
+
+	int lines = 0;
+	char c;
+	while ( (c = getc(fp)) != EOF)
+	{
+		if (c == '\n')
+			lines++;
+	}
+	rewind(fp);
+
+	Resonance * R = (Resonance *) malloc( lines * sizeof(Resonance));
+		
+	for( int i = 0; i < lines; i++ )
+	{
+		float dummy;
+		float * dum = &dummy;
+		int num = fscanf(fp, "%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n", 
+				&R[i].Eo,
+				dum,
+				&R[i].Tn,
+				&R[i].Tg,
+				dum,
+				dum);
+	}
+
+	fclose(fp);
+	*n_resonances = lines;
+	return R;
+}
+
 // This function uses a combination of the Abrarov Approximation
 // and the QUICK_W three term asymptotic expansion.
 // Only expected to use Abrarov ~0.5% of the time.
@@ -170,22 +203,8 @@ int main(void)
 
 	int n_gridpoints = 1000;
 
-	Resonance R[3];
-
-	// First Resonance
-	R[0].Eo = 6.673491e+0;
-	R[0].Tn = 1.475792e-3;
-	R[0].Tg = 2.300000e-2;
-
-	// Second Resonance
-	R[1].Eo = 2.087152e+1;
-	R[1].Tn = 1.009376e-2;
-	R[1].Tg = 2.286379e-2;
-
-	// Third Resonance
-	R[2].Eo = 3.668212e+1;
-	R[2].Tn = 3.354568e-2;
-	R[2].Tg = 2.300225e-2;
+	int n_resonances;
+	Resonance * R = res_read(&n_resonances);
 
 	// 4 pi a^2
 	double sigma_pot = 11.29; // barns
@@ -212,7 +231,7 @@ int main(void)
 		double q = 2.0 * sqrt(r * sigma_pot);
 
 		// Accumulate Contributions from Each Resonance
-		for( int j = 0; j < 3; j++ )
+		for( int j = 0; j < n_resonances; j++ )
 		{
 			double T = R[j].Tn + R[j].Tg;
 			double x = 2.0 * (E[i] - R[j].Eo) / T;
@@ -221,6 +240,9 @@ int main(void)
 			{
 				double xi = T * sqrt(238.0 / (4.0 * k * temp * R[j].Eo));
 				double complex faddeeva_in = (x+I)*xi;
+				if( cabs(faddeeva_in) < 6. )
+					cache++;
+				all++;
 				double complex faddeeva_out = xi * Tramm_W( faddeeva_in);
 				psi = sqrt(M_PI) * creal(faddeeva_out); 
 				chi = sqrt(M_PI) * cimag(faddeeva_out);
