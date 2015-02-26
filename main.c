@@ -227,12 +227,12 @@ int main(void)
 	// Calculate sigmas
 	for( int i = 0; i < n_gridpoints; i++ )
 	{
-		double r = 2603911.0 / E[i] * 239.0 / 238.0;
 		double q = 2.0 * sqrt(r * sigma_pot);
 
 		// Accumulate Contributions from Each Resonance
 		for( int j = 0; j < n_resonances; j++ )
 		{
+			double r = 2603911.0 / R[j].Eo * 239.0 / 238.0;
 			double T = R[j].Tn + R[j].Tg;
 			double x = 2.0 * (E[i] - R[j].Eo) / T;
 			double psi, chi;
@@ -261,7 +261,7 @@ int main(void)
 
 	}
 	printf("Cache needs = %d\n", cache);
-	printf("%% Cache needs: %.2lf%%\n", (double) cache/all * 100.0);
+	printf("%% Cache needs: %.4lf%%\n", (double) cache/all * 100.0);
 
 
 	// Save Data to File
