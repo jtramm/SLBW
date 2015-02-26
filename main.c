@@ -1,4 +1,5 @@
 // 22.211 PSET 1 - Problem 1 - SLBW Resonance Data Processing
+// John Tramm
 
 // ENDF Data Source: http://www.nndc.bnl.gov/sigma/getInterpreted.jsp?evalid=15324&mf=2&mt=151
 #include<stdio.h>
