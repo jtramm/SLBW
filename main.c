@@ -143,6 +143,8 @@ Resonance * res_read(int * n_resonances)
 	return R;
 }
 
+// My own implementation
+// See https://github.com/jtramm/FNF for details
 double complex FNF( double complex Z )
 {
 	// Abrarov 
