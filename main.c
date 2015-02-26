@@ -1,3 +1,5 @@
+// 22.211 PSET 1 - Problem 1 - SLBW Resonance Data Processing
+
 // ENDF Data Source: http://www.nndc.bnl.gov/sigma/getInterpreted.jsp?evalid=15324&mf=2&mt=151
 #include<stdio.h>
 #include<stdlib.h>
@@ -16,8 +18,6 @@ double complex FNF( double complex Z );
 int main(void)
 {
 	int temperature_dependent = 1;
-	int cache = 0;
-	int all = 0;
 	int n_gridpoints = 1000;
 
 	int n_resonances;
@@ -62,9 +62,6 @@ int main(void)
 			{
 				double xi = T * sqrt(238.0 / (4.0 * k * temp * R[j].Eo));
 				double complex faddeeva_in = (x+I)*xi;
-				if( cabs(faddeeva_in) < 6. )
-					cache++;
-				all++;
 				double complex faddeeva_out = xi * FNF( faddeeva_in);
 				psi = sqrt(M_PI) * creal(faddeeva_out); 
 				chi = sqrt(M_PI) * cimag(faddeeva_out);
@@ -82,10 +79,6 @@ int main(void)
 		sigma_t[i] += sigma_f[i] + sigma_n[i];
 
 	}
-
-	//printf("Cache needs = %d\n", cache);
-	//printf("%% Cache needs: %.4lf%%\n", (double) cache/all * 100.0);
-
 
 	// Save Data to File
 	printf("Printing output data to \"data.dat\"\n");
