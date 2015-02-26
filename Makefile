@@ -3,8 +3,7 @@ COMPILER    = gnu
 program = SLBW
 
 source = \
-main.c \
-Faddeeva.c
+main.c
 
 obj = $(source:.c=.o)
 
@@ -17,14 +16,14 @@ LDFLAGS = -lm
 # Regular gcc Compiler
 ifeq ($(COMPILER),gnu)
   CC = gcc
-  LDFLAGS += -fopenmp
+  LDFLAGS += 
   CFLAGS += -Ofast -ffast-math
 endif
 
 # intel Compiler
 ifeq ($(COMPILER),intel)
   CC = icc
-  LDFLAGS += -openmp
+  LDFLAGS += 
   CFLAGS += -O3 -xhost -ansi-alias -no-prec-div -DINTEL -vec-report6
 endif
 
