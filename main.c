@@ -25,10 +25,59 @@ Resonance * res_read(int * n_resonances);
 double complex FNF( double complex Z );
 XS calculate_XS( double E, double temp, Resonance * R, int nr );
 void res_out( XS * xs, int gp );
-
-
+void graph_driver(void);
+void find_RI( double e1, double e2, int gp, double temp );
 
 int main(void)
+{
+	int gp = 1000;
+	double low, high, temp, RI, xs;
+	temp = 300.0;
+	low = 6.0; high = 10.0;
+	find_RI( low, high, gp, temp );
+	low = 10.0; high = 25.0;
+	find_RI( low, high, gp, temp );
+	low = 25.0; high = 50.0;
+	find_RI( low, high, gp, temp );
+	temp = 1000.0;
+	low = 6.0; high = 10.0;
+	find_RI( low, high, gp, temp );
+	low = 10.0; high = 25.0;
+	find_RI( low, high, gp, temp );
+	low = 25.0; high = 50.0;
+	find_RI( low, high, gp, temp );
+
+	return 0;
+}
+
+void find_RI( double e1, double e2, int gp, double temp )
+{
+	int nr;
+	Resonance * R = res_read(&nr);
+
+	double range = e2 - e1;
+	double del = range / gp;
+	double RI = 0;
+
+	for( int i = 0; i < gp; i++ )
+	{
+		double low = e1 + del*i;
+		double high = e1 + del*(i+1);
+		double mid = (low+high)/2;
+
+		XS A = calculate_XS(low, temp, R, nr);
+		XS B = calculate_XS(mid, temp, R, nr);
+		XS C = calculate_XS(high, temp, R, nr);
+
+		RI += ((high-low)/6.0 * (A.sigma_g + 4.0*B.sigma_g + C.sigma_g)) / mid;
+	}
+
+	double xs = RI / log(e2/e1);
+	printf("T = %-6.1lfK  Range = (%-4.1lf - %-4.1lf) eV  RI = %-8.3lf[b]  xs = %-8.3lf[b]\n",
+		   temp, e1, e2, RI, xs);
+}
+
+void graph_driver(void)
 {
 	int gp = 10000;
 	double temp = 0.00001;
@@ -51,7 +100,6 @@ int main(void)
 	free(E);
 	free(xs);
 	free(R);
-	return 0;
 }
 
 XS calculate_XS( double E, double temp, Resonance * R, int nr )
@@ -100,7 +148,6 @@ void res_out( XS * xs, int gp )
 
 Resonance * res_read(int * n_resonances)
 {
-	printf("Reading from \"resonances.dat\" file...\n");
 	FILE * fp = fopen("resonances.dat", "r");
 	if( fp == NULL )
 	{
