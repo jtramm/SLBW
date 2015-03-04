@@ -23,6 +23,36 @@ typedef struct{
 
 Resonance * res_read(int * n_resonances);
 double complex FNF( double complex Z );
+XS calculate_XS( double E, double temp, Resonance * R, int nr );
+void res_out( XS * xs, int gp );
+
+
+
+int main(void)
+{
+	int gp = 10000;
+	double temp = 0.00001;
+	int nr;
+	Resonance * R = res_read(&nr);
+	XS * xs = (XS *) malloc( gp * sizeof(XS));
+	double * E = (double *) malloc( gp * sizeof(XS));
+
+	for( int i = 0; i < gp; i++ )
+	{
+		double delta = 4.0 / gp;
+		E[i] = pow(10.0, -2.0 + delta*i);
+	}
+
+	for( int i = 0; i < gp; i++ )
+		xs[i] = calculate_XS(E[i], temp, R, nr);
+
+	res_out(xs, gp);
+
+	free(E);
+	free(xs);
+	free(R);
+	return 0;
+}
 
 XS calculate_XS( double E, double temp, Resonance * R, int nr )
 {
@@ -54,25 +84,8 @@ XS calculate_XS( double E, double temp, Resonance * R, int nr )
 	return xs;
 }
 
-
-int main(void)
+void res_out( XS * xs, int gp )
 {
-	int gp = 10000;
-	double temp = 0.00001;
-	int nr;
-	Resonance * R = res_read(&nr);
-	XS * xs = (XS *) malloc( gp * sizeof(XS));
-	double * E = (double *) malloc( gp * sizeof(XS));
-
-	for( int i = 0; i < gp; i++ )
-	{
-		double delta = 4.0 / gp;
-		E[i] = pow(10.0, -2.0 + delta*i);
-	}
-
-	for( int i = 0; i < gp; i++ )
-		xs[i] = calculate_XS(E[i], temp, R, nr);
-
 	FILE * fp = fopen("data.dat", "w");
 	for( int i = 0; i < gp; i++ )
 	{
@@ -83,9 +96,6 @@ int main(void)
 				xs[i].sigma_t);
 	}
 	fclose(fp);
-
-	free(E);
-	return 0;
 }
 
 Resonance * res_read(int * n_resonances)
