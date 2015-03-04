@@ -6,6 +6,7 @@
 #include<stdlib.h>
 #include<math.h>
 #include<complex.h>
+#include "Faddeeva.h"
 
 typedef struct{
 	double Eo;
@@ -19,7 +20,7 @@ double complex FNF( double complex Z );
 int main(void)
 {
 	int temperature_dependent = 1;
-	int n_gridpoints = 1000;
+	int n_gridpoints = 100000;
 
 	int n_resonances;
 	Resonance * R = res_read(&n_resonances);
@@ -28,10 +29,10 @@ int main(void)
 	n_resonances = 3;
 
 	// 4 pi a^2
-	double sigma_pot = 11.29; // barns
+	double sigma_pot = 11.2934; // barns
 
 	double k = 8.6173324e-5;
-	double temp = 1000;
+	double temp = 0.00001;
 
 	double * E = (double *) calloc( 4 * n_gridpoints, sizeof(double));
 	double * sigma_f = E + n_gridpoints; 
@@ -42,8 +43,8 @@ int main(void)
 	printf("Initializing Log Scale...\n");
 	for( int i = 0; i < n_gridpoints; i++ )
 	{
-		double delta = 4.0 / n_gridpoints;
-		E[i] = pow(10.0,-2.0 + delta*i);
+		double delta = 2.0 / n_gridpoints;
+		E[i] = pow(10.0,delta*i);
 	}
 
 	// Calculate sigmas
@@ -62,8 +63,10 @@ int main(void)
 			if( temperature_dependent )
 			{
 				double xi = T * sqrt(238.0 / (4.0 * k * temp * R[j].Eo));
-				double complex faddeeva_in = (x+I)*xi;
-				double complex faddeeva_out = xi * FNF( faddeeva_in);
+				double complex faddeeva_in = x + I;
+				faddeeva_in *= xi;
+				//double complex faddeeva_out = xi * FNF( faddeeva_in);
+				double complex faddeeva_out = xi * Faddeeva_w( faddeeva_in, 0.0);
 				psi = sqrt(M_PI) * creal(faddeeva_out); 
 				chi = sqrt(M_PI) * cimag(faddeeva_out);
 			}
@@ -73,12 +76,12 @@ int main(void)
 				chi = x / (1.0 + x*x);
 			}
 			sigma_f[i] += R[j].Tn * R[j].Tg / (T*T) * sqrt(R[j].Eo / E[i]) * r * psi;
-			sigma_n[i] += R[j].Tn * R[j].Tg / (T*T) * ( r * psi + q * chi ) + sigma_pot; 
+			sigma_n[i] += R[j].Tn * R[j].Tn / (T*T) * ( r * psi + q * T/R[j].Tn * chi ); 
 		}
+		sigma_n[i] += sigma_pot;
 
 		// Calculate Total XS
 		sigma_t[i] += sigma_f[i] + sigma_n[i];
-
 	}
 
 	// Save Data to File
@@ -86,7 +89,7 @@ int main(void)
 	FILE * fp = fopen("data.dat", "w");
 	for( int i = 0; i < n_gridpoints; i++ )
 	{
-		fprintf(fp, "%lf\t%lf\t%lf\t%lf\n",
+		fprintf(fp, "%e\t%e\t%e\t%e\n",
 				E[i],
 				sigma_f[i],
 				sigma_n[i],
@@ -130,10 +133,18 @@ Resonance * res_read(int * n_resonances)
 				&R[i].Tg,
 				dum,
 				dum);
+		/*
+	printf("Resonance %d: Eo = %e\tTn = %e\t Tg = %e\n",
+			i,
+			R[i].Eo,
+			R[i].Tn,
+			R[i].Tg);
+			*/
 	}
 
 	fclose(fp);
 	*n_resonances = lines;
+
 	return R;
 }
 

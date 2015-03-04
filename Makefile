@@ -3,7 +3,8 @@ COMPILER    = gnu
 program = SLBW
 
 source = \
-main.c
+main.c \
+Faddeeva.c
 
 obj = $(source:.c=.o)
 
