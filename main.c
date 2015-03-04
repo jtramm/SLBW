@@ -20,22 +20,23 @@ double complex FNF( double complex Z );
 int main(void)
 {
 	int temperature_dependent = 1;
-	int n_gridpoints = 100000;
+	int n_gridpoints = 10000;
 
 	int n_resonances;
 	Resonance * R = res_read(&n_resonances);
 
 	// Setting it to only graph first 3 resonances
-	n_resonances = 3;
+	//n_resonances = 3;
 
 	// 4 pi a^2
 	double sigma_pot = 11.2934; // barns
 
 	double k = 8.6173324e-5;
 	double temp = 0.00001;
+	double A = 238.05078826;
 
 	double * E = (double *) calloc( 4 * n_gridpoints, sizeof(double));
-	double * sigma_f = E + n_gridpoints; 
+	double * sigma_g = E + n_gridpoints; 
 	double * sigma_n = E + 2 * n_gridpoints;
 	double * sigma_t = E + 3 * n_gridpoints;
 
@@ -55,14 +56,14 @@ int main(void)
 		// Accumulate Contributions from Each Resonance
 		for( int j = 0; j < n_resonances; j++ )
 		{
-			double r = 2603911.0 / R[j].Eo * 239.0 / 238.0;
+			double r = 2603911.0 / R[j].Eo * (A+1) / A;
 			double q = 2.0 * sqrt(r * sigma_pot);
 			double T = R[j].Tn + R[j].Tg;
 			double x = 2.0 * (E[i] - R[j].Eo) / T;
 			double psi, chi;
 			if( temperature_dependent )
 			{
-				double xi = T * sqrt(238.0 / (4.0 * k * temp * R[j].Eo));
+				double xi = T * sqrt(A / (4.0 * k * temp * R[j].Eo));
 				double complex faddeeva_in = x + I;
 				faddeeva_in *= xi;
 				//double complex faddeeva_out = xi * FNF( faddeeva_in);
@@ -75,13 +76,13 @@ int main(void)
 				psi = 1.0 / (1.0 + x*x);
 				chi = x / (1.0 + x*x);
 			}
-			sigma_f[i] += R[j].Tn * R[j].Tg / (T*T) * sqrt(R[j].Eo / E[i]) * r * psi;
+			sigma_g[i] += R[j].Tn * R[j].Tg / (T*T) * sqrt(R[j].Eo / E[i]) * r * psi;
 			sigma_n[i] += R[j].Tn * R[j].Tn / (T*T) * ( r * psi + q * T/R[j].Tn * chi ); 
 		}
 		sigma_n[i] += sigma_pot;
 
 		// Calculate Total XS
-		sigma_t[i] += sigma_f[i] + sigma_n[i];
+		sigma_t[i] += sigma_g[i] + sigma_n[i];
 	}
 
 	// Save Data to File
@@ -91,7 +92,7 @@ int main(void)
 	{
 		fprintf(fp, "%e\t%e\t%e\t%e\n",
 				E[i],
-				sigma_f[i],
+				sigma_g[i],
 				sigma_n[i],
 				sigma_t[i]);
 	}
