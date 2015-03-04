@@ -24,11 +24,10 @@ typedef struct{
 Resonance * res_read(int * n_resonances);
 double complex FNF( double complex Z );
 
-XS calculate_XS( double E, Resonance * R, int nr )
+XS calculate_XS( double E, double temp, Resonance * R, int nr )
 {
 	double sigma_pot = 11.2934;
 	double k = 8.6173324e-5;
-	double temp = 0.00001;
 	double A = 238.05078826;
 	XS xs = {0};
 	xs.E = E;
@@ -59,6 +58,7 @@ XS calculate_XS( double E, Resonance * R, int nr )
 int main(void)
 {
 	int gp = 10000;
+	double temp = 0.00001;
 	int nr;
 	Resonance * R = res_read(&nr);
 	XS * xs = (XS *) malloc( gp * sizeof(XS));
@@ -71,7 +71,7 @@ int main(void)
 	}
 
 	for( int i = 0; i < gp; i++ )
-		xs[i] = calculate_XS(E[i], R, nr);
+		xs[i] = calculate_XS(E[i], temp, R, nr);
 
 	FILE * fp = fopen("data.dat", "w");
 	for( int i = 0; i < gp; i++ )
