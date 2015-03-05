@@ -54,6 +54,7 @@ void find_RI( double e1, double e2, int gp, double temp )
 {
 	int nr;
 	Resonance * R = res_read(&nr);
+	nr = 3;
 
 	double range = e2 - e1;
 	double del = range / gp;
