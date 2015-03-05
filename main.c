@@ -30,7 +30,7 @@ void find_RI( double e1, double e2, int gp, double temp );
 
 int main(void)
 {
-	int gp = 1000;
+	int gp = 100;
 	double low, high, temp, RI, xs;
 	temp = 300.0;
 	low = 6.0; high = 10.0;
@@ -47,14 +47,50 @@ int main(void)
 	low = 25.0; high = 50.0;
 	find_RI( low, high, gp, temp );
 
+	graph_driver();
 	return 0;
+}
+
+void find_NR_RI( double e1, double e2, int gp, double temp, double s_b )
+{
+	int nr;
+	Resonance * R = res_read(&nr);
+	//nr = 3;
+	double s_p = 11.2934;
+
+	double range = e2 - e1;
+	double del = range / gp;
+	double RI = 0;
+
+	for( int i = 0; i < gp; i++ )
+	{
+		double low = e1 + del*i;
+		double high = e1 + del*(i+1);
+		double mid = (low+high)/2;
+
+		XS A = calculate_XS(low, temp, R, nr);
+		XS B = calculate_XS(mid, temp, R, nr);
+		XS C = calculate_XS(high, temp, R, nr);
+
+		double s_g = ((high-low)/6.0 * (A.sigma_g + 4.0*B.sigma_g + C.sigma_g));
+		double s_n = ((high-low)/6.0 * (A.sigma_n + 4.0*B.sigma_n + C.sigma_n));
+		double s_t = s_g + s_n;
+		
+		double D = s_a / (s_t + s_b );
+		RI += D / mid;
+	}
+	RI *= (s_p + s_b);
+
+	double xs = RI / log(e2/e1);
+	printf("T = %-6.1lfK  Range = (%-4.1lf - %-4.1lf) eV  RINR = %-8.3lf[b]  xs = %-8.3lf[b]\n",
+		   temp, e1, e2, RI, xs);
 }
 
 void find_RI( double e1, double e2, int gp, double temp )
 {
 	int nr;
 	Resonance * R = res_read(&nr);
-	nr = 3;
+	//nr = 3;
 
 	double range = e2 - e1;
 	double del = range / gp;
@@ -81,7 +117,7 @@ void find_RI( double e1, double e2, int gp, double temp )
 void graph_driver(void)
 {
 	int gp = 10000;
-	double temp = 0.00001;
+	double temp = 0.01;
 	int nr;
 	Resonance * R = res_read(&nr);
 	XS * xs = (XS *) malloc( gp * sizeof(XS));
@@ -120,8 +156,9 @@ XS calculate_XS( double E, double temp, Resonance * R, int nr )
 		double xi = T * sqrt(A / (4.0 * k * temp * R[j].Eo));
 		double complex faddeeva_in = x + I;
 		faddeeva_in *= xi;
-		double complex faddeeva_out = xi * FNF( faddeeva_in);
-		//double complex faddeeva_out = xi * Faddeeva_w( faddeeva_in, 0.0);
+		//printf("%e\t%e\n", creal(faddeeva_in), cimag(faddeeva_in));
+		//double complex faddeeva_out = xi * FNF( faddeeva_in);
+		double complex faddeeva_out = xi * Faddeeva_w( faddeeva_in, 0.0);
 		double psi = sqrt(M_PI) * creal(faddeeva_out); 
 		double chi = sqrt(M_PI) * cimag(faddeeva_out);
 		xs.sigma_g += R[j].Tn * R[j].Tg / (T*T) * sqrt(R[j].Eo / E) * r * psi;
