@@ -27,11 +27,12 @@ XS calculate_XS( double E, double temp, Resonance * R, int nr );
 void res_out( XS * xs, int gp );
 void graph_driver(void);
 void find_RI( double e1, double e2, int gp, double temp );
+void find_NR_RI( double e1, double e2, int gp, double temp, double s_b );
 
 int main(void)
 {
 	int gp = 100;
-	double low, high, temp, RI, xs;
+	double low, high, temp, RI, xs, s_b;
 	temp = 300.0;
 	low = 6.0; high = 10.0;
 	find_RI( low, high, gp, temp );
@@ -46,8 +47,13 @@ int main(void)
 	find_RI( low, high, gp, temp );
 	low = 25.0; high = 50.0;
 	find_RI( low, high, gp, temp );
+	temp = 300.0;
+	low = 6.0; high = 10.0;
+	s_b = 2000;
+	find_NR_RI( low, high, gp, temp, s_b );
 
-	graph_driver();
+
+
 	return 0;
 }
 
@@ -76,7 +82,7 @@ void find_NR_RI( double e1, double e2, int gp, double temp, double s_b )
 		double s_n = ((high-low)/6.0 * (A.sigma_n + 4.0*B.sigma_n + C.sigma_n));
 		double s_t = s_g + s_n;
 		
-		double D = s_a / (s_t + s_b );
+		double D = s_g / (s_t + s_b );
 		RI += D / mid;
 	}
 	RI *= (s_p + s_b);
