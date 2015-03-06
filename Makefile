@@ -4,7 +4,8 @@ program = SLBW
 
 source = \
 main.c \
-Faddeeva.c
+Faddeeva.c \
+IR.c
 
 obj = $(source:.c=.o)
 
@@ -28,14 +29,14 @@ ifeq ($(COMPILER),intel)
   CFLAGS += -O3 -xhost -ansi-alias -no-prec-div -DINTEL -vec-report6
 endif
 
-$(program): $(obj)
+$(program): $(obj) slbw_header.h
 	$(CC) $(CFLAGS) $(obj) -o $@ $(LDFLAGS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f SLBW data.dat main.o Faddeeva.o
+	rm -rf $(program) $(obj) data.dat
 run:
 	./SLBW
 graph:
