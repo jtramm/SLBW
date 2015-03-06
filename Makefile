@@ -5,7 +5,9 @@ program = SLBW
 source = \
 main.c \
 Faddeeva.c \
-IR.c
+RI.c \
+resonances.c \
+FNF.c
 
 obj = $(source:.c=.o)
 
