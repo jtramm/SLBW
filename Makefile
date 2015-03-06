@@ -44,4 +44,4 @@ run:
 graph:
 	gnuplot graph.gp
 edit:
-	vim main.c
+	vim -p $(source)

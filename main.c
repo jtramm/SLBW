@@ -2,6 +2,13 @@
 
 int main(void)
 {
+	double A = 238.0;
+	double alpha = pow((A-1)/(A+1),2);
+	double xi = ( (1-alpha) + alpha * log(alpha) ) / (1-alpha); 
+	double s_H = 20.0;
+	double HtoU = 100000;
+	double s_d = s_H * HtoU; 
+
 	RI_driver();
 	NR_WR_Driver();
 

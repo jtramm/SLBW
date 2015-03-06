@@ -4,6 +4,7 @@ void find_WR_RI( double e1, double e2, int gp, double temp, double s_b )
 {
 	int nr;
 	Resonance * R = res_read(&nr);
+	nr = 3;
 	double s_p = 11.2934;
 
 	double range = e2 - e1;
@@ -42,6 +43,7 @@ void find_NR_RI( double e1, double e2, int gp, double temp, double s_b )
 {
 	int nr;
 	Resonance * R = res_read(&nr);
+	nr = 3;
 	double s_p = 11.2934;
 
 	double range = e2 - e1;
