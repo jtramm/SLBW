@@ -244,7 +244,6 @@ XS calculate_XS( double E, double temp, Resonance * R, int nr )
 		double xi = T * sqrt(A / (4.0 * k * temp * R[j].Eo));
 		double complex faddeeva_in = x + I;
 		faddeeva_in *= xi;
-		//printf("%e\t%e\n", creal(faddeeva_in), cimag(faddeeva_in));
 		//double complex faddeeva_out = xi * FNF( faddeeva_in);
 		double complex faddeeva_out = xi * Faddeeva_w( faddeeva_in, 0.0);
 		double psi = sqrt(M_PI) * creal(faddeeva_out); 
