@@ -26,10 +26,43 @@ double complex FNF( double complex Z );
 XS calculate_XS( double E, double temp, Resonance * R, int nr );
 void res_out( XS * xs, int gp );
 void graph_driver(void);
+void RI_driver(void);
+void NR_WR_Driver(void);
 void find_RI( double e1, double e2, int gp, double temp );
 void find_NR_RI( double e1, double e2, int gp, double temp, double s_b );
+void find_WR_RI( double e1, double e2, int gp, double temp, double s_b );
 
 int main(void)
+{
+	NR_WR_Driver();
+
+	return 0;
+}
+
+void NR_WR_Driver(void)
+{
+	int gp = 1000;
+	double low[3] = {6, 10, 25};
+	double high[3] = {10, 25, 50};
+	double s_b[3] = {2000, 200, 20};
+	double temp = 300;
+	printf("%-10s%-10s%-15s%-10s%-10s%-10s\n",
+			"T [K]",
+			"s_b [b]",
+			"Range [eV]",
+			"Type",
+			"RI [b]",
+			"XS [b]"
+			);
+	for( int i = 0; i < 3; i++ )
+		for( int j = 0; j < 3; j++ )
+		{
+			find_NR_RI( low[j], high[j], gp, temp, s_b[i] );
+			find_WR_RI( low[j], high[j], gp, temp, s_b[i] );
+		}
+}
+
+void RI_driver(void)
 {
 	int gp = 100;
 	double low, high, temp, RI, xs, s_b;
@@ -47,21 +80,50 @@ int main(void)
 	find_RI( low, high, gp, temp );
 	low = 25.0; high = 50.0;
 	find_RI( low, high, gp, temp );
-	temp = 300.0;
-	low = 6.0; high = 10.0;
-	s_b = 2000;
-	find_NR_RI( low, high, gp, temp, s_b );
+}
 
+void find_WR_RI( double e1, double e2, int gp, double temp, double s_b )
+{
+	int nr;
+	Resonance * R = res_read(&nr);
+	double s_p = 11.2934;
 
+	double range = e2 - e1;
+	double del = range / gp;
+	double RI = 0;
 
-	return 0;
+	for( int i = 0; i < gp; i++ )
+	{
+		double low = e1 + del*i;
+		double high = e1 + del*(i+1);
+		double mid = (low+high)/2;
+
+		XS A = calculate_XS(low, temp, R, nr);
+		XS B = calculate_XS(mid, temp, R, nr);
+		XS C = calculate_XS(high, temp, R, nr);
+
+		double s_g = ((high-low)/6.0 * (A.sigma_g + 4.0*B.sigma_g + C.sigma_g));
+
+		double D = s_g / (s_g + s_b );
+		RI += D / mid;
+	}
+	RI *= s_b;
+
+	double xs = RI / log(e2/e1);
+	/*
+	printf("T = %-4.0lfK  s_b = %-4.0lf  Range = %-2.0lf-%-2.0lf [eV] "
+			"RIWR = %-8.3lf[b]  xs = %-8.3lf[b]\n",
+			temp, s_b, e1, e2, RI, xs);
+			*/
+	printf("%-10.0lf%-10.0lf%7.0lf-%-7.0lf"
+			"%-10s%-10.3lf%-10.3lf\n",
+			temp, s_b, e1, e2,"Wide", RI, xs);
 }
 
 void find_NR_RI( double e1, double e2, int gp, double temp, double s_b )
 {
 	int nr;
 	Resonance * R = res_read(&nr);
-	//nr = 3;
 	double s_p = 11.2934;
 
 	double range = e2 - e1;
@@ -81,22 +143,27 @@ void find_NR_RI( double e1, double e2, int gp, double temp, double s_b )
 		double s_g = ((high-low)/6.0 * (A.sigma_g + 4.0*B.sigma_g + C.sigma_g));
 		double s_n = ((high-low)/6.0 * (A.sigma_n + 4.0*B.sigma_n + C.sigma_n));
 		double s_t = s_g + s_n;
-		
+
 		double D = s_g / (s_t + s_b );
 		RI += D / mid;
 	}
 	RI *= (s_p + s_b);
 
 	double xs = RI / log(e2/e1);
-	printf("T = %-6.1lfK  Range = (%-4.1lf - %-4.1lf) eV  RINR = %-8.3lf[b]  xs = %-8.3lf[b]\n",
-		   temp, e1, e2, RI, xs);
+	/*
+	printf("T = %-4.0lfK  s_b = %-4.0lf  Range = %-2.0lf-%-2.0lf [eV] "
+			"RINR = %-8.3lf[b]  xs = %-8.3lf[b]\n",
+			temp, s_b, e1, e2, RI, xs);
+			*/
+	printf("%-10.0lf%-10.0lf%7.0lf-%-7.0lf"
+			"%-10s%-10.3lf%-10.3lf\n",
+			temp, s_b, e1, e2,"Narrow", RI, xs);
 }
 
 void find_RI( double e1, double e2, int gp, double temp )
 {
 	int nr;
 	Resonance * R = res_read(&nr);
-	//nr = 3;
 
 	double range = e2 - e1;
 	double del = range / gp;
@@ -116,8 +183,9 @@ void find_RI( double e1, double e2, int gp, double temp )
 	}
 
 	double xs = RI / log(e2/e1);
-	printf("T = %-6.1lfK  Range = (%-4.1lf - %-4.1lf) eV  RI = %-8.3lf[b]  xs = %-8.3lf[b]\n",
-		   temp, e1, e2, RI, xs);
+	printf("T = %-6.1lfK  Range = (%4.1lf - %-4.1lf) eV  "
+			"RI = %-8.3lf[b]  xs = %-8.3lf[b]\n",
+			temp, e1, e2, RI, xs);
 }
 
 void graph_driver(void)
