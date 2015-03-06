@@ -34,6 +34,7 @@ void find_WR_RI( double e1, double e2, int gp, double temp, double s_b );
 
 int main(void)
 {
+	RI_driver();
 	NR_WR_Driver();
 
 	return 0;
@@ -64,10 +65,18 @@ void NR_WR_Driver(void)
 
 void RI_driver(void)
 {
-	int gp = 100;
+	int gp = 1000;
 	double low, high, temp, RI, xs, s_b;
 	temp = 300.0;
 	low = 6.0; high = 10.0;
+	printf("%-10s%-10s%-15s%-10s%-10s%-10s\n",
+			"T [K]",
+			"s_b [b]",
+			"Range [eV]",
+			"Type",
+			"RI [b]",
+			"XS [b]"
+			);
 	find_RI( low, high, gp, temp );
 	low = 10.0; high = 25.0;
 	find_RI( low, high, gp, temp );
@@ -183,9 +192,14 @@ void find_RI( double e1, double e2, int gp, double temp )
 	}
 
 	double xs = RI / log(e2/e1);
+	/*
 	printf("T = %-6.1lfK  Range = (%4.1lf - %-4.1lf) eV  "
 			"RI = %-8.3lf[b]  xs = %-8.3lf[b]\n",
 			temp, e1, e2, RI, xs);
+			*/
+	printf("%-10.0lf%-10s%7.0lf-%-7.0lf"
+			"%-10s%-10.3lf%-10.3lf\n",
+			temp, "-", e1, e2,"InfD", RI, xs);
 }
 
 void graph_driver(void)
