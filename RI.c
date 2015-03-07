@@ -62,7 +62,7 @@ void find_NR_RI( double e1, double e2, int gp, double temp, double s_b )
 
 		double s_g = ((high-low)/6.0 * (A.sigma_g + 4.0*B.sigma_g + C.sigma_g));
 		double s_n = ((high-low)/6.0 * (A.sigma_n + 4.0*B.sigma_n + C.sigma_n));
-		double s_t = s_g + s_n;
+		double s_t = ((high-low)/6.0 * (A.sigma_t + 4.0*B.sigma_t + C.sigma_t));
 
 		double D = s_g / (s_t + s_b );
 		RI += D / mid;
@@ -84,6 +84,7 @@ void find_RI( double e1, double e2, int gp, double temp )
 {
 	int nr;
 	Resonance * R = res_read(&nr);
+	nr = 3;
 
 	double range = e2 - e1;
 	double del = range / gp;
