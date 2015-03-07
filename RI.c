@@ -1,5 +1,6 @@
 #include "slbw_header.h"
 
+
 void find_WR_RI( double e1, double e2, int gp, double temp, double s_b )
 {
 	int nr;
@@ -90,17 +91,18 @@ void find_RI( double e1, double e2, int gp, double temp )
 	double del = range / gp;
 	double RI = 0;
 
+	// Simpson's
 	for( int i = 0; i < gp; i++ )
 	{
 		double low = e1 + del*i;
 		double high = e1 + del*(i+1);
 		double mid = (low+high)/2;
 
-		XS A = calculate_XS(low, temp, R, nr);
-		XS B = calculate_XS(mid, temp, R, nr);
-		XS C = calculate_XS(high, temp, R, nr);
+		double A = integral_RI(low, temp, R, nr);
+		double B = integral_RI(mid, temp, R, nr);
+		double C = integral_RI(high, temp, R, nr);
 
-		RI += ((high-low)/6.0 * (A.sigma_g + 4.0*B.sigma_g + C.sigma_g)) / mid;
+		RI += (high-low)/6.0 * (A + 4.0*B + C);
 	}
 
 	double xs = RI / log(e2/e1);
@@ -112,4 +114,39 @@ void find_RI( double e1, double e2, int gp, double temp )
 	printf("%-10.0lf%-10s%7.0lf-%-7.0lf"
 			"%-10s%-10.3lf%-10.3lf\n",
 			temp, "-", e1, e2,"InfD", RI, xs);
+}
+
+double phi_RI( double E, double temp, Resonances * R, int nr )
+{
+	return 1.0/E;
+}
+
+double integral_RI( double E, double temp, Resonances * R, int nr )
+{
+	XS xs = calculate_XS(E, temp, R, nr);
+	return xs.sigma_g * phi_RI(E, temp, R, nr);
+}
+
+double phi_RI_Narrow( double E, double temp, XS xs, Resonances * R, int nr, double s_b )
+{
+	double s_p = 11.2934;
+	return 1.0 / E * ( (s_p + s_b) / (xs.sigma_t + s_b) );
+}
+
+double integral_RI_Narrow( double E, double temp, Resonances * R, int nr, double s_b )
+{
+	XS xs = calculate_XS(E, temp, R, nr);
+	return xs.sigma_g * phi_RI_Narrow(E, temp, xs, R, nr);
+}
+
+double phi_RI_Wide( double E, double temp, XS xs, Resonances * R, int nr, double s_b )
+{
+	XS xs = calculate_XS(E, temp, R, nr);
+	return 1.0 / E * ( s_b / (xs.sigma_g + s_b) );
+}
+
+double integral_RI_Wide( double E, double temp, Resonances * R, int nr, double s_b )
+{
+	XS xs = calculate_XS(E, temp, R, nr);
+	return xs.sigma_g * phi_RI_Wide(E, temp, xs, R, nr);
 }

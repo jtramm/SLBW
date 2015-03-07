@@ -11,7 +11,7 @@ int main(void)
 
 void NR_WR_Driver(void)
 {
-	int gp = 1000;
+	int gp = 10000;
 	double low[3] = {6, 10, 25};
 	double high[3] = {10, 25, 50};
 	double s_b[3] = {2000, 200, 20};
