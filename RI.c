@@ -10,26 +10,36 @@ void find_WR_RI( double e1, double e2, int gp, double temp, double s_b )
 
 	double range = e2 - e1;
 	double del = range / gp;
-	double RI = 0;
 
+	double RI = 0;
 	for( int i = 0; i < gp; i++ )
 	{
 		double low = e1 + del*i;
 		double high = e1 + del*(i+1);
 		double mid = (low+high)/2;
 
-		XS A = calculate_XS(low, temp, R, nr);
-		XS B = calculate_XS(mid, temp, R, nr);
-		XS C = calculate_XS(high, temp, R, nr);
+		double A = integral_RI_Wide(low, temp, R, nr, s_b);
+		double B = integral_RI_Wide(mid, temp, R, nr, s_b);
+		double C = integral_RI_Wide(high, temp, R, nr, s_b);
 
-		double s_g = ((high-low)/6.0 * (A.sigma_g + 4.0*B.sigma_g + C.sigma_g));
-
-		double D = s_g / (s_g + s_b );
-		RI += D / mid;
+		RI += (high-low)/6.0 * (A + 4.0*B + C);
 	}
-	RI *= s_b;
+	
+	double phi = 0;
+	for( int i = 0; i < gp; i++ )
+	{
+		double low = e1 + del*i;
+		double high = e1 + del*(i+1);
+		double mid = (low+high)/2;
 
-	double xs = RI / log(e2/e1);
+		double A = phi_RI_Wide(low, temp, R, nr, s_b);
+		double B = phi_RI_Wide(mid, temp, R, nr, s_b);
+		double C = phi_RI_Wide(high, temp, R, nr, s_b);
+
+		phi += (high-low)/6.0 * (A + 4.0*B + C);
+	}
+
+	double xs = RI / phi;
 	/*
 	printf("T = %-4.0lfK  s_b = %-4.0lf  Range = %-2.0lf-%-2.0lf [eV] "
 			"RIWR = %-8.3lf[b]  xs = %-8.3lf[b]\n",
@@ -57,20 +67,27 @@ void find_NR_RI( double e1, double e2, int gp, double temp, double s_b )
 		double high = e1 + del*(i+1);
 		double mid = (low+high)/2;
 
-		XS A = calculate_XS(low, temp, R, nr);
-		XS B = calculate_XS(mid, temp, R, nr);
-		XS C = calculate_XS(high, temp, R, nr);
+		double A = integral_RI_Narrow(low, temp, R, nr, s_b);
+		double B = integral_RI_Narrow(mid, temp, R, nr, s_b);
+		double C = integral_RI_Narrow(high, temp, R, nr, s_b);
 
-		double s_g = ((high-low)/6.0 * (A.sigma_g + 4.0*B.sigma_g + C.sigma_g));
-		double s_n = ((high-low)/6.0 * (A.sigma_n + 4.0*B.sigma_n + C.sigma_n));
-		double s_t = ((high-low)/6.0 * (A.sigma_t + 4.0*B.sigma_t + C.sigma_t));
-
-		double D = s_g / (s_t + s_b );
-		RI += D / mid;
+		RI += (high-low)/6.0 * (A + 4.0*B + C);
 	}
-	RI *= (s_p + s_b);
+	double phi = 0;
+	for( int i = 0; i < gp; i++ )
+	{
+		double low = e1 + del*i;
+		double high = e1 + del*(i+1);
+		double mid = (low+high)/2;
 
-	double xs = RI / log(e2/e1);
+		double A = phi_RI_Narrow(low, temp, R, nr, s_b);
+		double B = phi_RI_Narrow(mid, temp, R, nr, s_b);
+		double C = phi_RI_Narrow(high, temp, R, nr, s_b);
+
+		phi += (high-low)/6.0 * (A + 4.0*B + C);
+	}
+
+	double xs = RI / phi;
 	/*
 	printf("T = %-4.0lfK  s_b = %-4.0lf  Range = %-2.0lf-%-2.0lf [eV] "
 			"RINR = %-8.3lf[b]  xs = %-8.3lf[b]\n",
@@ -116,37 +133,39 @@ void find_RI( double e1, double e2, int gp, double temp )
 			temp, "-", e1, e2,"InfD", RI, xs);
 }
 
-double phi_RI( double E, double temp, Resonances * R, int nr )
+double phi_RI( double E, double temp, Resonance * R, int nr )
 {
 	return 1.0/E;
 }
 
-double integral_RI( double E, double temp, Resonances * R, int nr )
+double integral_RI( double E, double temp, Resonance * R, int nr )
 {
 	XS xs = calculate_XS(E, temp, R, nr);
 	return xs.sigma_g * phi_RI(E, temp, R, nr);
 }
 
-double phi_RI_Narrow( double E, double temp, XS xs, Resonances * R, int nr, double s_b )
+double phi_RI_Narrow( double E, double temp, Resonance * R, int nr, double s_b )
 {
 	double s_p = 11.2934;
+	XS xs = calculate_XS(E, temp, R, nr);
 	return 1.0 / E * ( (s_p + s_b) / (xs.sigma_t + s_b) );
 }
 
-double integral_RI_Narrow( double E, double temp, Resonances * R, int nr, double s_b )
+double integral_RI_Narrow( double E, double temp, Resonance * R, int nr, double s_b )
 {
 	XS xs = calculate_XS(E, temp, R, nr);
-	return xs.sigma_g * phi_RI_Narrow(E, temp, xs, R, nr);
+	return xs.sigma_g * phi_RI_Narrow(E, temp, R, nr, s_b);
 }
 
-double phi_RI_Wide( double E, double temp, XS xs, Resonances * R, int nr, double s_b )
+double phi_RI_Wide( double E, double temp, Resonance * R, int nr, double s_b )
 {
 	XS xs = calculate_XS(E, temp, R, nr);
 	return 1.0 / E * ( s_b / (xs.sigma_g + s_b) );
 }
 
-double integral_RI_Wide( double E, double temp, Resonances * R, int nr, double s_b )
+double integral_RI_Wide( double E, double temp, Resonance * R, int nr, double s_b )
 {
 	XS xs = calculate_XS(E, temp, R, nr);
-	return xs.sigma_g * phi_RI_Wide(E, temp, xs, R, nr);
+	return xs.sigma_g * phi_RI_Wide(E, temp, R, nr, s_b);
 }
+
