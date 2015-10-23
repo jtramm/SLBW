@@ -1,5 +1,56 @@
 #include "slbw_header.h"
 
+void find_specific_NR_RI( double e1, double e2, int gp, double temp, double s_b )
+{
+	int nr;
+	Resonance * R = (Resonance *) malloc(sizeof(Resonance));
+	R->Eo = 1050.0;
+	R->Tn = 0.023;
+	R->Tg = 0.095;
+	nr = 1;
+	double s_p = 11.4;
+
+	double range = e2 - e1;
+	double del = range / gp;
+	double RI = 0;
+
+	for( int i = 0; i < gp; i++ )
+	{
+		double low = e1 + del*i;
+		double high = e1 + del*(i+1);
+		double mid = (low+high)/2;
+
+		double A = integral_RI_Narrow(low, temp, R, nr, s_b);
+		double B = integral_RI_Narrow(mid, temp, R, nr, s_b);
+		double C = integral_RI_Narrow(high, temp, R, nr, s_b);
+
+		RI += (high-low)/6.0 * (A + 4.0*B + C);
+	}
+	double phi = 0;
+	for( int i = 0; i < gp; i++ )
+	{
+		double low = e1 + del*i;
+		double high = e1 + del*(i+1);
+		double mid = (low+high)/2;
+
+		double A = phi_RI_Narrow(low, temp, R, nr, s_b);
+		double B = phi_RI_Narrow(mid, temp, R, nr, s_b);
+		double C = phi_RI_Narrow(high, temp, R, nr, s_b);
+
+		phi += (high-low)/6.0 * (A + 4.0*B + C);
+	}
+
+	double xs = RI / phi;
+	/*
+	printf("T = %-4.0lfK  s_b = %-4.0lf  Range = %-2.0lf-%-2.0lf [eV] "
+			"RINR = %-8.3lf[b]  xs = %-8.3lf[b]\n",
+			temp, s_b, e1, e2, RI, xs);
+			*/
+	printf("%-10.0lf%-10.0lf%7.0lf-%-7.0lf"
+			"%-10s%-10.3lf%-10.6lf\n",
+			temp, s_b, e1, e2,"Narrow", RI, xs);
+}
+
 
 void find_WR_RI( double e1, double e2, int gp, double temp, double s_b )
 {

@@ -3,10 +3,31 @@
 int main(void)
 {
 
-	RI_driver();
-	NR_WR_Driver();
+	ultra_fine_Driver();
+	//RI_driver();
+	//NR_WR_Driver();
 
 	return 0;
+}
+
+void ultra_fine_Driver(void)
+{
+	printf("%-10s%-10s%-15s%-10s%-10s%-10s\n",
+			"T [K]",
+			"s_b [b]",
+			"Range [eV]",
+			"Type",
+			"RI [b]",
+			"XS [b]"
+			);
+	int gp = 100000;
+	double temp = 300.0;
+
+	double E_low = 1000; //ev
+	double E_high = 1100; //ev
+	double s_b = 8.0;
+	find_specific_NR_RI( E_low, E_high, gp, temp, s_b );
+
 }
 
 void NR_WR_Driver(void)

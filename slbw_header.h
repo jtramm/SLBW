@@ -34,3 +34,5 @@ double phi_RI_Narrow( double E, double temp, Resonance * R, int nr, double s_b )
 double integral_RI_Narrow( double E, double temp, Resonance * R, int nr, double s_b );
 double phi_RI_Wide( double E, double temp, Resonance * R, int nr, double s_b );
 double integral_RI_Wide( double E, double temp, Resonance * R, int nr, double s_b );
+void ultra_fine_Driver(void);
+void find_specific_NR_RI( double e1, double e2, int gp, double temp, double s_b );
